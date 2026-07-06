@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebPMaker - PNG to Animated WebP</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Decorative Corner Angles -->
+  <div class="corner-angle corner-tl"></div>
+  <div class="corner-angle corner-tr"></div>
+  <div class="corner-angle corner-bl"></div>
+  <div class="corner-angle corner-br"></div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-top-bar"></div>
+      <div class="header-content">
+        <div class="logo-section">
+          <span class="logo-icon">◆</span>
+          <h1 class="logo-title">WebP<span class="logo-accent">Maker</span></h1>
+        </div>
+        <p class="header-subtitle">PNG SEQUENCE → ANIMATED WEBP</p>
+        <div class="author-badge-container">
+          <span class="header-author">BY NAYTOOLS</span>
+        </div>
+      </div>
+      <div class="header-bottom-bar">
+        <div class="bar-diamond"></div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: PNG to WebP -->
+    <section class="tool-section" id="section-png2webp">
+      <div class="section-label">
+        <span class="label-number">01</span>
+        <span class="label-text">PNG → WEBP ANIMADO</span>
+      </div>
+
+      <!-- Input Area -->
+      <div class="panel panel-input">
+        <div class="panel-header">
+          <h2 class="panel-title">▸ ORIGEN PNG</h2>
+          <span class="panel-badge">INPUT</span>
+        </div>
+        <div class="panel-body">
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-content">
+              <div class="drop-icon">
+                <svg viewBox="0 0 60 60" width="60" height="60">
+                  <polygon points="30,5 55,30 30,55 5,30" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <line x1="30" y1="20" x2="30" y2="40" stroke="currentColor" stroke-width="3"/>
+                  <line x1="20" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="3"/>
+                </svg>
+              </div>
+              <p class="drop-text">ARRASTRA PNGs AQUÍ</p>
+              <p class="drop-subtext">o haz clic para seleccionar</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/png" multiple hidden>
+          </div>
+
+          <!-- Frame List -->
+          <div class="frame-list-container">
+            <div class="frame-list-header">
+              <h3>FRAMES <span class="frame-count" id="frameCount">0</span></h3>
+              <div class="frame-actions">
+                <button class="btn btn-small btn-icon" id="btnClearAll" title="Limpiar todos">
+                  <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+                </button>
+                <button class="btn btn-small btn-icon" id="btnReverse" title="Invertir orden">
+                  <svg viewBox="0 0 24 24" width="16" height="16"><path d="M7 14l5-5 5 5z" fill="currentColor"/><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="frame-list" id="frameList">
+              <div class="frame-list-empty" id="frameEmpty">
+                <p>No hay frames. Arrastra imágenes PNG aquí.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="panel panel-settings">
+        <div class="panel-header">
+          <h2 class="panel-title">▸ CONFIGURACIÓN</h2>
+          <span class="panel-badge">SETTINGS</span>
+        </div>
+        <div class="panel-body">
+          <div class="settings-grid">
+            <!-- Output Size -->
+            <div class="setting-group">
+              <label class="setting-label">RESOLUCIÓN DE SALIDA</label>
+              <div class="setting-row">
+                <div class="input-with-label">
+                  <span>W</span>
+                  <input type="number" id="outputWidth" value="480" min="1" max="4096" class="input-num">
+                </div>
+                <span class="setting-sep">×</span>
+                <div class="input-with-label">
+                  <span>H</span>
+                  <input type="number" id="outputHeight" value="480" min="1" max="4096" class="input-num">
+                </div>
+                <button class="btn btn-small" id="btnKeepRatio" title="Mantener ratio del original">ORIG</button>
+              </div>
+            </div>
+
+            <!-- Velocidad / Duración de Frame -->
+            <div class="setting-group">
+              <div class="setting-header-row">
+                <label class="setting-label" id="speedModeLabel">VELOCIDAD</label>
+                <div class="speed-toggle-container">
+                  <button class="btn btn-toggle active" id="btnSpeedModeFps" type="button">FPS</button>
+                  <button class="btn btn-toggle" id="btnSpeedModeMs" type="button">MS</button>
+                </div>
+              </div>
+              <div id="fpsSpeedContainer">
+                <input type="range" id="fpsSlider" min="1" max="60" value="10" class="input-range">
+                <span class="range-value" id="fpsValue">10 FPS (100.0ms)</span>
+              </div>
+              <div id="msSpeedContainer" style="display: none;">
+                <input type="range" id="msSlider" min="10" max="2000" value="100" class="input-range">
+                <span class="range-value" id="msValue">100ms</span>
+              </div>
+            </div>
+
+            <!-- Quality -->
+            <div class="setting-group">
+              <label class="setting-label">CALIDAD WEBP</label>
+              <input type="range" id="quality" min="1" max="100" value="80" class="input-range">
+              <span class="range-value" id="qualityValue">80</span>
+            </div>
+
+            <!-- Loop -->
+            <div class="setting-group">
+              <label class="setting-label">REPETICIONES</label>
+              <div class="toggle-row">
+                <button class="btn btn-toggle active" data-loop="infinite" id="btnLoopInfinite">∞ INFINITO</button>
+                <button class="btn btn-toggle" data-loop="once" id="btnLoopOnce">1 VEZ</button>
+                <div class="input-with-label" id="loopCountGroup" style="display:none">
+                  <span>×</span>
+                  <input type="number" id="loopCount" value="3" min="1" max="999" class="input-num input-num-small">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="panel panel-preview">
+        <div class="panel-header">
+          <h2 class="panel-title">▸ PREVIEW</h2>
+          <span class="panel-badge">OUTPUT</span>
+        </div>
+        <div class="panel-body">
+          <div class="preview-area" id="previewArea">
+            <div class="preview-empty" id="previewEmpty">
+              <p>El WebP animado aparecerá aquí tras la conversión.</p>
+            </div>
+            <img id="previewImage" style="display:none" alt="Preview WebP">
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Panel -->
+      <div class="panel panel-compare">
+        <div class="panel-header">
+          <h2 class="panel-title">▸ COMPARATIVA DE TAMAÑOS</h2>
+          <span class="panel-badge">STATS</span>
+        </div>
+        <div class="panel-body">
+          <div class="compare-stats" id="compareStats">
+            <div class="stat-card">
+              <span class="stat-label">ENTRADA (PNGs)</span>
+              <span class="stat-value" id="inputSize">--</span>
+            </div>
+            <div class="stat-arrow">
+              <svg viewBox="0 0 24 24" width="32" height="32"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" fill="currentColor"/></svg>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">SALIDA (WebP)</span>
+              <span class="stat-value" id="outputSize">--</span>
+            </div>
+            <div class="stat-card stat-highlight">
+              <span class="stat-label">REDUCCIÓN</span>
+              <span class="stat-value" id="reduction">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="action-bar">
+        <div class="progress-container" id="progressContainer" style="display:none">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">0%</span>
+        </div>
+        <button class="btn btn-create" id="btnCreate" disabled>
+          <span class="btn-text">CREAR WEBP ANIMADO</span>
+          <span class="btn-icon-right">▶</span>
+        </button>
+        <button class="btn btn-download" id="btnDownload" style="display:none">
+          <span class="btn-text">DESCARGAR WEBP</span>
+          <span class="btn-icon-right">⬇</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Future Sections Placeholder -->
+    <section class="future-sections">
+      <div class="future-card">
+        <span class="future-number">02</span>
+        <span class="future-text">PRÓXIMAMENTE</span>
+      </div>
+      <div class="future-card">
+        <span class="future-number">03</span>
+        <span class="future-text">PRÓXIMAMENTE</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/frames.js"></script>
+  <script src="js/dragdrop.js"></script>
+  <script src="js/encoder.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
