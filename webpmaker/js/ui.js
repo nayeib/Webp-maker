@@ -6,8 +6,34 @@
 window.UIManager = {
   originalRatio: 1,
   keepRatioActive: true,
+  frameZoom: 100,
 
   init() {
+    // Modal Help Event Listeners
+    const btnHelp = document.getElementById('btnHelp');
+    const btnCloseHelp = document.getElementById('btnCloseHelp');
+    const helpModalOverlay = document.getElementById('helpModalOverlay');
+
+    const toggleHelpModal = (show) => {
+      if (show) {
+        helpModalOverlay.classList.add('show');
+      } else {
+        helpModalOverlay.classList.remove('show');
+      }
+    };
+
+    if (btnHelp) {
+      btnHelp.addEventListener('click', () => toggleHelpModal(true));
+    }
+    if (btnCloseHelp) {
+      btnCloseHelp.addEventListener('click', () => toggleHelpModal(false));
+    }
+    if (helpModalOverlay) {
+      helpModalOverlay.addEventListener('click', (e) => {
+        if (e.target === helpModalOverlay) toggleHelpModal(false);
+      });
+    }
+
     // Event listeners for speed settings
     const btnSpeedModeFps = document.getElementById('btnSpeedModeFps');
     const btnSpeedModeMs = document.getElementById('btnSpeedModeMs');
@@ -125,6 +151,36 @@ window.UIManager = {
       });
     }
 
+    // Frame zoom control
+    const frameZoom = document.getElementById('frameZoom');
+    if (frameZoom) {
+      frameZoom.addEventListener('input', (e) => {
+        this.frameZoom = parseInt(e.target.value);
+        this.updateFrameList();
+      });
+    }
+
+    // Fixed action bar buttons
+    const btnScrollTop = document.getElementById('btnScrollTop');
+    const btnClearFixed = document.getElementById('btnClearFixed');
+    const btnScrollBottom = document.getElementById('btnScrollBottom');
+
+    if (btnScrollTop) {
+      btnScrollTop.addEventListener('click', () => {
+        document.getElementById('headerSection').scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+    if (btnClearFixed) {
+      btnClearFixed.addEventListener('click', () => {
+        window.FrameManager.clearAll();
+      });
+    }
+    if (btnScrollBottom) {
+      btnScrollBottom.addEventListener('click', () => {
+        document.getElementById('actionBarSection').scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
     // Create & Download Buttons
     const btnCreate = document.getElementById('btnCreate');
     const btnDownload = document.getElementById('btnDownload');
@@ -151,9 +207,12 @@ window.UIManager = {
 
     const frames = window.FrameManager.frames;
 
+    // Calculate total effective frames including duplicates
+    const totalEffectiveFrames = frames.reduce((sum, f) => sum + (f.duplicateCount || 1), 0);
+
     // Update count
     if (frameCount) {
-      frameCount.textContent = frames.length;
+      frameCount.textContent = `${frames.length} (${totalEffectiveFrames})`;
     }
 
     // Toggle empty state
@@ -183,25 +242,42 @@ window.UIManager = {
       btnCreate.disabled = frames.length === 0;
     }
 
+    // Calculate zoomed item width
+    const baseItemWidth = 100;
+    const zoomedWidth = Math.round(baseItemWidth * (this.frameZoom / 100));
+
     // Render new frame list
     frames.forEach((frame, index) => {
       const item = document.createElement('div');
       item.className = 'frame-item';
       item.draggable = true;
       item.dataset.id = frame.id;
+      item.style.width = `${zoomedWidth}px`;
 
       // Card structure
       item.innerHTML = `
         <div class="frame-thumb-container">
           <img class="frame-thumb" src="${frame.thumbnailUrl}" alt="${frame.name}">
           <span class="frame-index-badge">${index + 1}</span>
+          <button class="frame-remove-btn" title="Quitar Frame" onclick="event.stopPropagation(); window.FrameManager.removeFrame(${frame.id});">
+            ×
+          </button>
         </div>
         <div class="frame-info">
           <span class="frame-name" title="${frame.name}">${frame.name}</span>
           <span class="frame-details">${frame.width}×${frame.height} • ${this.formatBytes(frame.size)}</span>
         </div>
-        <button class="frame-remove-btn" title="Quitar Frame" onclick="event.stopPropagation(); window.FrameManager.removeFrame(${frame.id});">
-          ×
+        <div class="frame-duplicate-controls">
+          <button class="frame-duplicate-btn" onclick="event.stopPropagation(); window.FrameManager.decrementDuplicate(${frame.id});" title="Reducir repeticiones">
+            &lt;
+          </button>
+          <span class="frame-duplicate-count">${frame.duplicateCount}</span>
+          <button class="frame-duplicate-btn" onclick="event.stopPropagation(); window.FrameManager.incrementDuplicate(${frame.id});" title="Aumentar repeticiones">
+            &gt;
+          </button>
+        </div>
+        <button class="frame-copy-btn" onclick="event.stopPropagation(); window.FrameManager.duplicateFrame(${frame.id});" title="Duplicar como nuevo frame">
+          📋 Duplicar
         </button>
       `;
 

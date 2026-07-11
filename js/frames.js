@@ -4,16 +4,21 @@
  */
 
 window.FrameManager = {
-  frames: [], // Array of { id, file, name, size, img, width, height, imageData }
+  frames: [], // Array of { id, file, name, size, img, width, height, imageData, duplicateCount }
   nextId: 1,
 
-  async addFiles(fileList) {
-    const pngFiles = Array.from(fileList).filter(file => file.type === 'image/png');
-    if (pngFiles.length === 0) return [];
+  async addFiles(fileList, atIndex = -1) {
+    const validFiles = Array.from(fileList).filter(file => 
+      file.type === 'image/png' || 
+      file.type === 'image/webp' || 
+      file.type === 'image/gif'
+    );
+    if (validFiles.length === 0) return [];
 
     const loadedFrames = [];
+    let insertPos = atIndex === -1 ? this.frames.length : atIndex;
     
-    for (const file of pngFiles) {
+    for (const file of validFiles) {
       try {
         const frameData = await this.loadFrameData(file);
         const frame = {
@@ -21,9 +26,15 @@ window.FrameManager = {
           file,
           name: file.name,
           size: file.size,
+          duplicateCount: 1,
           ...frameData
         };
-        this.frames.push(frame);
+        
+        if (atIndex === -1) {
+          this.frames.push(frame);
+        } else {
+          this.frames.splice(insertPos++, 0, frame);
+        }
         loadedFrames.push(frame);
       } catch (err) {
         console.error('Error loading file:', file.name, err);
@@ -32,6 +43,42 @@ window.FrameManager = {
     
     this.triggerChange();
     return loadedFrames;
+  },
+
+  incrementDuplicate(id) {
+    const frame = this.frames.find(f => f.id === id);
+    if (frame) {
+      frame.duplicateCount++;
+      this.triggerChange();
+    }
+  },
+
+  decrementDuplicate(id) {
+    const frame = this.frames.find(f => f.id === id);
+    if (frame && frame.duplicateCount > 1) {
+      frame.duplicateCount--;
+      this.triggerChange();
+    }
+  },
+
+  duplicateFrame(id) {
+    const frameIndex = this.frames.findIndex(f => f.id === id);
+    if (frameIndex === -1) return;
+
+    const originalFrame = this.frames[frameIndex];
+    const newFrame = {
+      id: this.nextId++,
+      file: originalFrame.file,
+      name: originalFrame.name,
+      size: originalFrame.size,
+      width: originalFrame.width,
+      height: originalFrame.height,
+      thumbnailUrl: originalFrame.thumbnailUrl,
+      duplicateCount: 1
+    };
+
+    this.frames.splice(frameIndex + 1, 0, newFrame);
+    this.triggerChange();
   },
 
   loadFrameData(file) {
@@ -125,7 +172,7 @@ window.FrameManager = {
   },
 
   getTotalInputSize() {
-    return this.frames.reduce((sum, f) => sum + f.size, 0);
+    return this.frames.reduce((sum, f) => sum + (f.size * (f.duplicateCount || 1)), 0);
   },
 
   getAverageDimensions() {

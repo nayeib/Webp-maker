@@ -167,6 +167,26 @@ body {
   border: 1px solid var(--p5-white);
 }
 
+.contact-link {
+  margin-top: 8px;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--p5-gold);
+  text-decoration: none;
+  padding: 4px 12px;
+  border: 1px solid var(--p5-gold);
+  background: rgba(212, 160, 23, 0.1);
+  transition: all 0.15s ease;
+}
+
+.contact-link:hover {
+  background: var(--p5-gold);
+  color: var(--p5-black);
+  box-shadow: 0 0 10px rgba(212, 160, 23, 0.4);
+}
+
 .header-bottom-bar {
   height: 2px;
   background: var(--p5-gray);
@@ -355,6 +375,8 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   min-height: 60px;
+  max-height: calc(80px * 5 + 8px * 4); /* Max 5 rows of 80px cards + gaps */
+  overflow-y: auto;
   padding: 8px;
   background: var(--p5-dark);
   border: 1px solid var(--p5-gray);
@@ -366,6 +388,12 @@ body {
   padding: 20px;
   color: var(--p5-text-dim);
   font-size: 0.8rem;
+}
+
+.frame-list.drag-over-files {
+  border-color: var(--p5-gold);
+  background: rgba(212, 160, 23, 0.05);
+  box-shadow: inset 0 0 20px rgba(212, 160, 23, 0.1);
 }
 
 /* --- Frame Card --- */
@@ -939,4 +967,375 @@ body {
 .toast.success {
   border-color: var(--p5-gold);
   box-shadow: 0 0 20px rgba(212, 160, 23, 0.2);
+}
+
+/* --- Modal Overlay --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 10, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--p5-dark-panel);
+  border: 2px solid var(--p5-red);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--p5-dark);
+  border-bottom: 1px solid var(--p5-gray-light);
+}
+
+.modal-title {
+  font-family: var(--font-main);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--p5-white);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: rgba(230, 0, 18, 0.2);
+  border: 1px solid var(--p5-red);
+  color: var(--p5-white);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-close:hover {
+  background: var(--p5-red);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section h3 {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--p5-red);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.help-section p,
+.help-section li {
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  color: var(--p5-text);
+  line-height: 1.6;
+}
+
+.help-section ul {
+  padding-left: 20px;
+  margin-top: 4px;
+}
+
+.help-section li {
+  margin-bottom: 4px;
+}
+
+/* Red glow on frame list when dragging */
+.frame-list:has(.frame-item.dragging) {
+  border-color: var(--p5-red);
+  box-shadow: 0 0 20px rgba(230, 0, 18, 0.3);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* --- Frame Placeholder --- */
+.frame-placeholder {
+  border: 2px dashed var(--p5-red);
+  background: rgba(230, 0, 18, 0.1);
+  box-shadow: 0 0 15px rgba(230, 0, 18, 0.5);
+  border-radius: 2px;
+  animation: placeholderPulse 1s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Frame item cursor */
+.frame-item {
+  cursor: grab;
+}
+
+.frame-item:active {
+  cursor: grabbing;
+}
+
+/* Make sure non-interactive children don't interfere with drag, but allow buttons to be clicked */
+.frame-item .frame-thumb-container,
+.frame-item .frame-thumb,
+.frame-item .frame-index-badge,
+.frame-item .frame-info,
+.frame-item .frame-name,
+.frame-item .frame-details {
+  pointer-events: none;
+}
+
+.frame-item button,
+.frame-item .frame-remove-btn {
+  pointer-events: auto;
+}
+
+/* --- Trash Zone --- */
+.trash-zone {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p5-dark);
+  border: 1px solid var(--p5-gray-light);
+  color: var(--p5-text-dim);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.trash-zone:hover {
+  color: var(--p5-red);
+  border-color: var(--p5-red);
+  background: rgba(230, 0, 18, 0.05);
+}
+
+.trash-zone.drag-over {
+  background: var(--p5-red);
+  color: var(--p5-white);
+  border-color: var(--p5-white);
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 0 20px rgba(230, 0, 18, 0.6);
+  animation: trashShake 0.2s ease infinite;
+}
+
+@keyframes trashShake {
+  0%, 100% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* --- Fixed Action Bar --- */
+.fixed-action-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 99;
+}
+
+/* --- Zoom Control --- */
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zoom-control .setting-label {
+  margin-bottom: 0;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+}
+
+/* --- Frame Item (new structure) --- */
+.frame-item {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.frame-item.dragging {
+  opacity: 0.4;
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(230, 0, 18, 0.6);
+  z-index: 100;
+  transition: none; /* No transition while dragging to avoid lag or drag cancellation */
+}
+
+.frame-item.drag-over-target {
+  border: 2px dashed var(--p5-gold);
+  box-shadow: 0 0 15px rgba(212, 160, 23, 0.4);
+  transform: scale(1.02);
+}
+
+.frame-thumb-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid var(--p5-gray);
+  background: var(--p5-black);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-thumb {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.frame-index-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: rgba(10, 10, 10, 0.85);
+  color: var(--p5-red);
+  padding: 1px 5px;
+  letter-spacing: 1px;
+}
+
+.frame-remove-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: rgba(230, 0, 18, 0.2);
+  border: 1px solid var(--p5-red);
+  color: var(--p5-white);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s ease;
+}
+
+.frame-thumb-container:hover .frame-remove-btn {
+  opacity: 1;
+}
+
+.frame-remove-btn:hover {
+  background: var(--p5-red);
+}
+
+.frame-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.65rem;
+  color: var(--p5-text-dim);
+  overflow: hidden;
+}
+
+.frame-name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.frame-details {
+  font-size: 0.6rem;
+}
+
+.frame-duplicate-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.frame-duplicate-btn {
+  width: 24px;
+  height: 24px;
+  background: var(--p5-dark);
+  border: 1px solid var(--p5-gray-light);
+  color: var(--p5-white);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.frame-duplicate-btn:hover {
+  border-color: var(--p5-red);
+  color: var(--p5-red);
+}
+
+.frame-duplicate-count {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--p5-white);
+  background: rgba(212, 160, 23, 0.2);
+  border: 1px solid var(--p5-gold);
+  padding: 2px 4px;
+}
+
+.frame-copy-btn {
+  margin-top: 4px;
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-main);
+  background: rgba(230, 0, 18, 0.15);
+  border: 1px solid var(--p5-red);
+  color: var(--p5-white);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.frame-copy-btn:hover {
+  background: var(--p5-red);
+  box-shadow: 0 0 10px rgba(230, 0, 18, 0.4);
+  transform: translateY(-1px);
 }

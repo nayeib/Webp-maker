@@ -4,16 +4,20 @@
  */
 
 window.FrameManager = {
-  frames: [], // Array of { id, file, name, size, img, width, height, imageData }
+  frames: [], // Array of { id, file, name, size, img, width, height, imageData, duplicateCount }
   nextId: 1,
 
   async addFiles(fileList) {
-    const pngFiles = Array.from(fileList).filter(file => file.type === 'image/png');
-    if (pngFiles.length === 0) return [];
+    const validFiles = Array.from(fileList).filter(file => 
+      file.type === 'image/png' || 
+      file.type === 'image/webp' || 
+      file.type === 'image/gif'
+    );
+    if (validFiles.length === 0) return [];
 
     const loadedFrames = [];
     
-    for (const file of pngFiles) {
+    for (const file of validFiles) {
       try {
         const frameData = await this.loadFrameData(file);
         const frame = {
@@ -21,6 +25,7 @@ window.FrameManager = {
           file,
           name: file.name,
           size: file.size,
+          duplicateCount: 1,
           ...frameData
         };
         this.frames.push(frame);
@@ -32,6 +37,42 @@ window.FrameManager = {
     
     this.triggerChange();
     return loadedFrames;
+  },
+
+  incrementDuplicate(id) {
+    const frame = this.frames.find(f => f.id === id);
+    if (frame) {
+      frame.duplicateCount++;
+      this.triggerChange();
+    }
+  },
+
+  decrementDuplicate(id) {
+    const frame = this.frames.find(f => f.id === id);
+    if (frame && frame.duplicateCount > 1) {
+      frame.duplicateCount--;
+      this.triggerChange();
+    }
+  },
+
+  duplicateFrame(id) {
+    const frameIndex = this.frames.findIndex(f => f.id === id);
+    if (frameIndex === -1) return;
+
+    const originalFrame = this.frames[frameIndex];
+    const newFrame = {
+      id: this.nextId++,
+      file: originalFrame.file,
+      name: originalFrame.name,
+      size: originalFrame.size,
+      width: originalFrame.width,
+      height: originalFrame.height,
+      thumbnailUrl: originalFrame.thumbnailUrl,
+      duplicateCount: 1
+    };
+
+    this.frames.splice(frameIndex + 1, 0, newFrame);
+    this.triggerChange();
   },
 
   loadFrameData(file) {
@@ -125,7 +166,7 @@ window.FrameManager = {
   },
 
   getTotalInputSize() {
-    return this.frames.reduce((sum, f) => sum + f.size, 0);
+    return this.frames.reduce((sum, f) => sum + (f.size * (f.duplicateCount || 1)), 0);
   },
 
   getAverageDimensions() {

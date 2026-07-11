@@ -57,13 +57,11 @@ window.WebPEncoder = {
     tempCanvas.height = height;
     const ctx = tempCanvas.getContext('2d');
 
-    const totalFrames = frames.length;
+    // Calculate total "effective" frames (including duplicates)
+    const totalEffectiveFrames = frames.reduce((sum, frame) => sum + (frame.duplicateCount || 1), 0);
+    let processedCount = 0;
 
-    for (let i = 0; i < totalFrames; i++) {
-      if (onProgress) {
-        onProgress(Math.round((i / totalFrames) * 45)); // 0-45% is resizing/preparing frames
-      }
-
+    for (let i = 0; i < frames.length; i++) {
       const frame = frames[i];
       let img;
       try {
@@ -80,16 +78,23 @@ window.WebPEncoder = {
       ctx.drawImage(img, 0, 0, width, height);
       
       const imgData = ctx.getImageData(0, 0, width, height);
+      const frameData = new Uint8Array(imgData.data);
       
-      // Add frame with its individual configuration
-      encodedFrames.push({
-        data: new Uint8Array(imgData.data),
-        duration: duration,
-        config: {
-          lossless: quality === 100 ? 1 : 0,
-          quality: quality
+      // Add frame multiple times based on duplicateCount
+      for (let d = 0; d < (frame.duplicateCount || 1); d++) {
+        encodedFrames.push({
+          data: frameData,
+          duration: duration,
+          config: {
+            lossless: quality === 100 ? 1 : 0,
+            quality: quality
+          }
+        });
+        processedCount++;
+        if (onProgress) {
+          onProgress(Math.round((processedCount / totalEffectiveFrames) * 45));
         }
-      });
+      }
 
       // Clear source to release memory
       img.src = '';

@@ -5,6 +5,7 @@
 
 window.DragDropHandler = {
   draggedItem: null,
+  placeholder: null,
 
   init() {
     const dropZone = document.getElementById('dropZone');
@@ -52,6 +53,16 @@ window.DragDropHandler = {
         if (item) {
           this.draggedItem = item;
           item.classList.add('dragging');
+          
+          // Create placeholder
+          this.placeholder = document.createElement('div');
+          this.placeholder.className = 'frame-placeholder';
+          // Set placeholder dimensions to match dragged item
+          this.placeholder.style.width = item.offsetWidth + 'px';
+          this.placeholder.style.height = item.offsetHeight + 'px';
+          // Insert placeholder right after dragged item initially
+          item.parentNode.insertBefore(this.placeholder, item.nextSibling);
+          
           e.dataTransfer.effectAllowed = 'move';
           e.dataTransfer.setData('text/plain', item.dataset.id);
         }
@@ -62,6 +73,13 @@ window.DragDropHandler = {
         if (item) {
           item.classList.remove('dragging');
         }
+        
+        // Remove placeholder
+        if (this.placeholder) {
+          this.placeholder.remove();
+          this.placeholder = null;
+        }
+
         this.draggedItem = null;
         
         // Update frames order based on DOM order
@@ -72,13 +90,28 @@ window.DragDropHandler = {
         e.preventDefault();
         const afterElement = this.getDragAfterElement(frameList, e.clientY);
         const dragging = document.querySelector('.frame-item.dragging');
-        if (dragging) {
+        
+        if (dragging && this.placeholder) {
           if (afterElement == null) {
-            frameList.appendChild(dragging);
+            frameList.appendChild(this.placeholder);
           } else {
-            frameList.insertBefore(dragging, afterElement);
+            frameList.insertBefore(this.placeholder, afterElement);
           }
         }
+      });
+
+      frameList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dragging = document.querySelector('.frame-item.dragging');
+
+        if (dragging && this.placeholder) {
+          // Insert dragged item right before the placeholder
+          frameList.insertBefore(dragging, this.placeholder);
+        }
+      });
+
+      frameList.addEventListener('dragleave', (e) => {
+        // Do nothing if leaving to child element
       });
     }
   },
@@ -95,13 +128,17 @@ window.DragDropHandler = {
   },
 
   getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.frame-item:not(.dragging)')];
+    // Get only actual frame items, exclude dragging item and placeholder
+    const draggableElements = [...container.querySelectorAll('.frame-item:not(.dragging):not(.frame-placeholder)')];
 
     return draggableElements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
+      const centerY = box.top + box.height / 2;
+      const distance = y - centerY;
+      
+      // Find the element that is the closest one below the current mouse position
+      if (distance < 0 && distance > closest.offset) {
+        return { offset: distance, element: child };
       } else {
         return closest;
       }

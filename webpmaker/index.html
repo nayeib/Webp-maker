@@ -16,19 +16,82 @@
   <div class="corner-angle corner-bl"></div>
   <div class="corner-angle corner-br"></div>
 
+  <!-- Fixed Action Bar -->
+  <div class="fixed-action-bar" id="fixedActionBar">
+    <button class="btn btn-small" id="btnHelp" title="Ayuda">
+      ?
+    </button>
+    <button class="btn btn-small" id="btnScrollTop" title="Ir a la zona de entrada">
+      ↑ ARRIBA
+    </button>
+    <button class="btn btn-small" id="btnClearFixed" title="Limpiar todos los frames">
+      ✕ LIMPIAR
+    </button>
+    <button class="btn btn-small" id="btnScrollBottom" title="Ir a la zona de generación">
+      ↓ ABAJO
+    </button>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Ayuda WebPMaker</h2>
+        <button class="modal-close" id="btnCloseHelp">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="help-section">
+          <h3>Cargar imágenes</h3>
+          <p>Arrastra y suelta imágenes PNG, WebP o GIF en la zona de drop o haz click en ella para seleccionar archivos.</p>
+        </div>
+        <div class="help-section">
+          <h3>Organizar frames</h3>
+          <p>Arrastra los frames para reordenarlos. Usa los botones <strong>&lt; &gt;</strong> para cambiar la cantidad de veces que se repite un mismo frame (ideal para idle).</p>
+        </div>
+        <div class="help-section">
+          <h3>📋 Duplicar como nuevo frame</h3>
+          <p>Crea una nueva entrada separada del mismo frame para poder reordenarla.</p>
+        </div>
+        <div class="help-section">
+          <h3>Configuración</h3>
+          <ul>
+            <li>Resolución: Tamaño de salida del WebP animado</li>
+            <li>Velocidad: FPS (frames por segundo) o duración por frame en ms</li>
+            <li>Calidad: Ajusta la calidad del WebP (mayor = mejor calidad pero más peso)</li>
+            <li>Repeticiones: Infinito, una sola vez o número específico</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h3>Generar y descargar</h3>
+          <p>Haz click en "CREAR WEBP ANIMADO", previsualiza y luego descarga tu WebP!</p>
+        </div>
+        <div class="help-section">
+          <h3>Barra de botones fija</h3>
+          <ul>
+            <li>?: Muestra esta ayuda</li>
+            <li>↑ Arriba: Scroll hasta la zona de carga</li>
+            <li>✕ Limpiar: Borra todos los frames</li>
+            <li>↓ Abajo: Scroll hasta la zona de generación</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Container -->
   <div class="app-container">
     <!-- Header -->
-    <header class="app-header">
+    <header class="app-header" id="headerSection">
       <div class="header-top-bar"></div>
       <div class="header-content">
         <div class="logo-section">
           <span class="logo-icon">◆</span>
           <h1 class="logo-title">WebP<span class="logo-accent">Maker</span></h1>
         </div>
-        <p class="header-subtitle">PNG SEQUENCE → ANIMATED WEBP</p>
+        <p class="header-subtitle">MULTI-FORMAT → ANIMATED WEBP</p>
         <div class="author-badge-container">
           <span class="header-author">BY NAYTOOLS</span>
+          <a href="mailto:naytools.dev@gmail.com" class="contact-link">naytools.dev@gmail.com</a>
         </div>
       </div>
       <div class="header-bottom-bar">
@@ -40,13 +103,13 @@
     <section class="tool-section" id="section-png2webp">
       <div class="section-label">
         <span class="label-number">01</span>
-        <span class="label-text">PNG → WEBP ANIMADO</span>
+        <span class="label-text">MULTI-FORMAT → WEBP ANIMADO</span>
       </div>
 
       <!-- Input Area -->
       <div class="panel panel-input">
         <div class="panel-header">
-          <h2 class="panel-title">▸ ORIGEN PNG</h2>
+          <h2 class="panel-title">▸ ORIGEN (PNG, WebP, GIF)</h2>
           <span class="panel-badge">INPUT</span>
         </div>
         <div class="panel-body">
@@ -60,10 +123,10 @@
                   <line x1="20" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="3"/>
                 </svg>
               </div>
-              <p class="drop-text">ARRASTRA PNGs AQUÍ</p>
-              <p class="drop-subtext">o haz clic para seleccionar</p>
+              <p class="drop-text">ARRASTRA IMÁGENES AQUÍ</p>
+              <p class="drop-subtext">PNG, WebP, GIF • o haz clic para seleccionar</p>
             </div>
-            <input type="file" id="fileInput" accept="image/png" multiple hidden>
+            <input type="file" id="fileInput" accept="image/png,image/webp,image/gif" multiple hidden>
           </div>
 
           <!-- Frame List -->
@@ -71,6 +134,10 @@
             <div class="frame-list-header">
               <h3>FRAMES <span class="frame-count" id="frameCount">0</span></h3>
               <div class="frame-actions">
+                <div class="zoom-control">
+                  <label class="setting-label">ZOOM</label>
+                  <input type="range" id="frameZoom" min="50" max="150" value="100" class="input-range" style="width: 100px;">
+                </div>
                 <button class="btn btn-small btn-icon" id="btnClearAll" title="Limpiar todos">
                   <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
                 </button>
@@ -81,7 +148,7 @@
             </div>
             <div class="frame-list" id="frameList">
               <div class="frame-list-empty" id="frameEmpty">
-                <p>No hay frames. Arrastra imágenes PNG aquí.</p>
+                <p>No hay frames. Arrastra imágenes aquí.</p>
               </div>
             </div>
           </div>
@@ -123,12 +190,12 @@
                 </div>
               </div>
               <div id="fpsSpeedContainer">
-                <input type="range" id="fpsSlider" min="1" max="60" value="10" class="input-range">
-                <span class="range-value" id="fpsValue">10 FPS (100.0ms)</span>
+                <input type="range" id="fpsSlider" min="1" max="60" value="24" class="input-range">
+                <span class="range-value" id="fpsValue">24 FPS (41.7ms)</span>
               </div>
               <div id="msSpeedContainer" style="display: none;">
-                <input type="range" id="msSlider" min="10" max="2000" value="100" class="input-range">
-                <span class="range-value" id="msValue">100ms</span>
+                <input type="range" id="msSlider" min="10" max="2000" value="42" class="input-range">
+                <span class="range-value" id="msValue">42ms</span>
               </div>
             </div>
 
@@ -199,7 +266,7 @@
       </div>
 
       <!-- Action Button -->
-      <div class="action-bar">
+      <div class="action-bar" id="actionBarSection">
         <div class="progress-container" id="progressContainer" style="display:none">
           <div class="progress-bar">
             <div class="progress-fill" id="progressFill"></div>
